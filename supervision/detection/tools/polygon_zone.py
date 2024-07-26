@@ -65,13 +65,19 @@ class PolygonZone:
             polygon=polygon, resolution_wh=(x_max + 2, y_max + 2)
         )
 
-    def trigger(self, detections: Detections) -> npt.NDArray[np.bool_]:
+    def trigger(
+        self, detections: Detections, anchor_only: bool = True
+    ) -> npt.NDArray[np.bool_]:
         """
         Determines if the detections are within the polygon zone.
 
         Parameters:
             detections (Detections): The detections
                 to be checked against the polygon zone
+            anchor_only (bool): Register a detection
+                in a zone only if the achor of the object 
+                is fully inside of it. Else, if any part of 
+                the object is inside of it. Default is True
 
         Returns:
             np.ndarray: A boolean numpy array indicating
@@ -95,7 +101,10 @@ class PolygonZone:
             .astype(bool)
         )
 
-        is_in_zone: npt.NDArray[np.bool_] = np.all(is_in_zone, axis=1)
+        if anchor_only:
+            is_in_zone: npt.NDArray[np.bool_] = np.all(is_in_zone, axis=1)
+        else:
+            is_in_zone: npt.NDArray[np.bool_] = np.any(is_in_zone, axis=1)
         self.current_count = int(np.sum(is_in_zone))
         return is_in_zone.astype(bool)
 
